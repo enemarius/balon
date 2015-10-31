@@ -23,12 +23,13 @@ LEDs:
 Pushbuttons:
     B1 USER: user and wake-up button connected to the I/O PA0.   
     
+****** Interrupts ****** 
     
 ****** SysTick ******
 	
 	24 bit timer -> 0xFF_FFFF = 16777215
-	
-	SysTick_Config(uint32_t ticks) from core_cm4.h
+	Clock source = AHB/8 = HCLK/8 = HSI/8 = 1 MHz => 1tick = 1 uS
+        => 1 mS ... 1000 ticks => sysTickValue = 1000
 	
 	
 	
