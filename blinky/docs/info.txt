@@ -1,0 +1,65 @@
+/*-----------------------------------------------------------------------------
+ * Name:    info.txt
+ * Purpose: STM32F4 discovery hardware/configuration infos
+ * Note(s):
+ *----------------------------------------------------------------------------*/
+ 
+****** Clocking ****** 
+
+ Default clock: HSI (No XTAL mounted on board.)
+	HSI = internal 8 Mhz RC oscillator
+        SysTick = AHB clock(HCLK) / 8 = 1 MHz.
+ 
+****** GPIO ****** 
+LEDs:
+    User LD3: red LED connected to the I/O PE9.
+    User LD4: blue LED connected to the I/O PE8.
+    User LD5: orange LED connected to the I/O PE10.
+    User LD6: green LED connected to the I/O PE15.
+    User LD7: green LED connected to the I/O PE11.
+    User LD8: orange LED connected to the I/O PE14.
+    User LD9: blue LED connected to the I/O PE12.
+    User LD10: red LED connected to the I/O PE13.
+Pushbuttons:
+    B1 USER: user and wake-up button connected to the I/O PA0.   
+    
+    
+****** SysTick ******
+	
+	24 bit timer -> 0xFF_FFFF = 16777215
+	
+	SysTick_Config(uint32_t ticks) from core_cm4.h
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
