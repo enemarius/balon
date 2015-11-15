@@ -32,3 +32,15 @@
 *.dSYM/
 blinky/Listings/
 blinky/Objects/
+project1_register_access/Objects/startup_stm32f303xc.d
+project1_register_access/Listings/register_access.map
+project1_register_access/Listings/startup_stm32f303xc.lst
+project1_register_access/Objects/ExtDll.iex
+project1_register_access/Objects/main.crf
+project1_register_access/Objects/main.d
+project1_register_access/Objects/register_access.axf
+project1_register_access/Objects/register_access.build_log.htm
+project1_register_access/Objects/register_access.htm
+project1_register_access/Objects/register_access.lnp
+project1_register_access/Objects/register_access.sct
+project1_register_access/Objects/register_access_STM32F303VC.dep

@@ -4,6 +4,9 @@
  * Note(s):
  *----------------------------------------------------------------------------*/
  
+TODO:
+    - flash initialization.
+
 ****** Clocking ****** 
 
  Default clock: HSI (No XTAL mounted on board.)

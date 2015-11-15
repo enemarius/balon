@@ -7,6 +7,20 @@
 #include "system.h"
 #include "stm32f303xc.h"  
 
+/** \brief  Select clock source
+
+    Select external crystal as clock source + PLL (HSE oscillator clock).
+
+    \param [in]  
+
+    \return          
+*/
+uin32_t SYSTEM_SetClockSource()
+{
+
+    return 0;
+}
+
 /** \brief  System Tick Configuration
 
     The function initializes the System Timer and its interrupt, and starts the System Tick Timer.
