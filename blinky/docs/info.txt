@@ -7,11 +7,53 @@
 TODO:
     - flash initialization.
 
+
+****** BOOT/Flash ****** 
+
+    Boot mode selection
+    nBOOT1(bit) BOOT0(pin)
+    x           0           Main Flash memory
+    1           1           System memory (bootloader: USART,USB,I2C)
+    0           1           Embedded SRAM
+
+    Boot from main Flash memory: the main Flash memory is aliased in the boot memory
+    space (0x0000 0000), but still accessible from its original memory space 
+    (0x0800 0000). In other words, the Flash memory contents can be accessed starting from
+    address 0x0000 0000 or 0x0800 0000.
+
+    Flash: 256 KB (64 Kbits × 64 bits)
+    Information block (1280 × 64 bits)
+
+
+
 ****** Clocking ****** 
 
  Default clock: HSI (No XTAL mounted on board.)
 	HSI = internal 8 Mhz RC oscillator
         SysTick = AHB clock(HCLK) / 8 = 1 MHz.
+    HSE = external oscillator
+
+    HCLK(AHB clock/Cortex clock ?)
+
+    AHB  <= 72 MHz
+    APB2 <= 72 MHz
+    APB1 <= 36 MHz
+
+    1. Configure HSE clock(external quartz) + PLL
+        - [4-32]MHz = 16MHz
+        - Switch HSE on: RCC_CR[HSEON] == 1
+        - Check external clock is stable: RCC_CR[HSERDY] == 1
+        - Disable the PLL: RCC_CR[PPLON] == 0
+        - Wait untill PLL is stopped: RCC_CR[PLLRDY] == 0
+        - PLL prescaler: RCC_CFGR[PLLXTPRE] == 0 == x1 => CLK=16MHz 
+        - PLL source: RCC_CFGR[PLLSRC] == 2 == HSE  
+        - PLL multiplier: RCC_CFGR[PLLMUL] == 0 == x2 => CLK=32MHz
+        - Enable the PLL: ?[PPLON] == 1
+        - AHB prescaler
+        - APB1 prescaler
+        - APB2 prescaler        
+        - System clock switch: RCC_CFGR[SW] == 2 == PLL
+        - Check system clock: RCC_CFGR[SWS] == 2 == PLL
  
 ****** GPIO ****** 
 LEDs:

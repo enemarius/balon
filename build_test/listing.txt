@@ -1,0 +1,328 @@
+ARM GAS  startup.s 			page 1
+
+
+   1              	
+   2              	  .syntax unified
+   3              		.cpu cortex-m4
+   4              		.fpu softvfp
+   5              		.thumb
+   6              	
+   7              	.global	g_pfnVectors
+   8              	.global	Default_Handler
+   9              	
+  10              	/* start address for the initialization values of the .data section.
+  11              	defined in linker script */
+  12 0000 00000000 	.word	_sidata
+  13              	/* start address for the .data section. defined in linker script */
+  14 0004 00000000 	.word	_sdata
+  15              	/* end address for the .data section. defined in linker script */
+  16 0008 00000000 	.word	_edata
+  17              	/* start address for the .bss section. defined in linker script */
+  18 000c 00000000 	.word	_sbss
+  19              	/* end address for the .bss section. defined in linker script */
+  20 0010 00000000 	.word	_ebss
+  21              	
+  22              	.equ  BootRAM,        0xF1E0F85F
+  23              	/**
+  24              	 * @brief  This is the code that gets called when the processor first
+  25              	 *          starts execution following a reset event. Only the absolutely
+  26              	 *          necessary set is performed, after which the application
+  27              	 *          supplied main() routine is called.
+  28              	 * @param  None
+  29              	 * @retval : None
+  30              	*/
+  31              	
+  32              	    .section	.text.Reset_Handler
+  33              		.weak	Reset_Handler
+  34              		.type	Reset_Handler, %function
+  35              	Reset_Handler:
+  36              	
+  37              	/* Copy the data segment initializers from flash to SRAM */
+  38 0000 0021     	  movs	r1, #0
+  39 0002 00F004B8 	  b	LoopCopyDataInit
+  40              	
+  41              	CopyDataInit:
+  42 0006 0B4B     		ldr	r3, =_sidata
+  43 0008 5B58     		ldr	r3, [r3, r1]
+  44 000a 4350     		str	r3, [r0, r1]
+  45 000c 0431     		adds	r1, r1, #4
+  46              	
+  47              	LoopCopyDataInit:
+  48 000e 0A48     		ldr	r0, =_sdata
+  49 0010 0A4B     		ldr	r3, =_edata
+  50 0012 4218     		adds	r2, r0, r1
+  51 0014 9A42     		cmp	r2, r3
+  52 0016 FFF4F6AF 		bcc	CopyDataInit
+  53 001a 094A     		ldr	r2, =_sbss
+  54 001c 00F003B8 		b	LoopFillZerobss
+  55              	/* Zero fill the bss segment. */
+  56              	FillZerobss:
+  57 0020 0023     		movs	r3, #0
+ARM GAS  startup.s 			page 2
+
+
+  58 0022 42F8043B 		str	r3, [r2], #4
+  59              	
+  60              	LoopFillZerobss:
+  61 0026 074B     		ldr	r3, = _ebss
+  62 0028 9A42     		cmp	r2, r3
+  63 002a FFF4F9AF 		bcc	FillZerobss
+  64              	
+  65              	/* Call the clock system intitialization function.*/
+  66              	    /*bl  SystemInit*/
+  67              	/* Call static constructors */
+  68              	    /*bl __libc_init_array*/
+  69              	/* Call the application's entry point.*/
+  70              		/*bl	main*/
+  71              	
+  72              	LoopForever:
+  73 002e FFF7FEBF 	    b LoopForever
+  74              	
+  75              	.size	Reset_Handler, .-Reset_Handler
+  76              	
+  77              	/**
+  78              	 * @brief  This is the code that gets called when the processor receives an
+  79              	 *         unexpected interrupt.  This simply enters an infinite loop, preserving
+  80              	 *         the system state for examination by a debugger.
+  81              	 *
+  82              	 * @param  None
+  83              	 * @retval : None
+  84              	*/
+  85 0032 0000     	    .section	.text.Default_Handler,"ax",%progbits
+  86              	Default_Handler:
+  87              	Infinite_Loop:
+  88 0000 FFF7FEBF 		b	Infinite_Loop
+  89              		.size	Default_Handler, .-Default_Handler
+  90              	/******************************************************************************
+  91              	*
+  92              	* The minimal vector table for a Cortex-M4.  Note that the proper constructs
+  93              	* must be placed on this to ensure that it ends up at physical address
+  94              	* 0x0000.0000.
+  95              	*
+  96              	******************************************************************************/
+  97              	 	.section	.isr_vector,"a",%progbits
+  98              		.type	g_pfnVectors, %object
+  99              		.size	g_pfnVectors, .-g_pfnVectors
+ 100              	
+ 101              	
+ 102              	g_pfnVectors:
+ 103 0000 00000000 		.word	_estack
+ 104 0004 00000000 		.word	Reset_Handler
+ 105 0008 00000000 		.word	NMI_Handler
+ 106 000c 00000000 		.word	HardFault_Handler
+ 107 0010 00000000 		.word	MemManage_Handler
+ 108 0014 00000000 		.word	BusFault_Handler
+ 109 0018 00000000 		.word	UsageFault_Handler
+ 110 001c 00000000 		.word	0
+ 111 0020 00000000 		.word	0
+ 112 0024 00000000 		.word	0
+ 113 0028 00000000 		.word	0
+ 114 002c 00000000 		.word	SVC_Handler
+ARM GAS  startup.s 			page 3
+
+
+ 115 0030 00000000 		.word	DebugMon_Handler
+ 116 0034 00000000 		.word	0
+ 117 0038 00000000 		.word	PendSV_Handler
+ 118 003c 00000000 		.word	SysTick_Handler
+ 119              	
+ 120              	
+ 121              	/*******************************************************************************
+ 122              	*
+ 123              	* Provide weak aliases for each Exception handler to the Default_Handler.
+ 124              	* As they are weak aliases, any function with the same name will override
+ 125              	* this definition.
+ 126              	*
+ 127              	*******************************************************************************/
+ 128              	
+ 129              	  .weak	NMI_Handler
+ 130              		.thumb_set NMI_Handler,Default_Handler
+ 131              	
+ 132              	  .weak	HardFault_Handler
+ 133              		.thumb_set HardFault_Handler,Default_Handler
+ 134              	
+ 135              	  .weak	MemManage_Handler
+ 136              		.thumb_set MemManage_Handler,Default_Handler
+ 137              	
+ 138              	  .weak	BusFault_Handler
+ 139              		.thumb_set BusFault_Handler,Default_Handler
+ 140              	
+ 141              		.weak	UsageFault_Handler
+ 142              		.thumb_set UsageFault_Handler,Default_Handler
+ 143              	
+ 144              		.weak	SVC_Handler
+ 145              		.thumb_set SVC_Handler,Default_Handler
+ 146              	
+ 147              		.weak	DebugMon_Handler
+ 148              		.thumb_set DebugMon_Handler,Default_Handler
+ 149              	
+ 150              		.weak	PendSV_Handler
+ 151              		.thumb_set PendSV_Handler,Default_Handler
+ 152              	
+ 153              		.weak	SysTick_Handler
+ 154              		.thumb_set SysTick_Handler,Default_Handler
+ 155              	
+ARM GAS  startup.s 			page 1
+
+
+   1              	
+   2              	  .syntax unified
+   3              		.cpu cortex-m4
+   4              		.fpu softvfp
+   5              		.thumb
+   6              	
+   7              	.global	g_pfnVectors
+   8              	.global	Default_Handler
+   9              	
+  10              	/* start address for the initialization values of the .data section.
+  11              	defined in linker script */
+  12 0000 00000000 	.word	_sidata
+  13              	/* start address for the .data section. defined in linker script */
+  14 0004 00000000 	.word	_sdata
+  15              	/* end address for the .data section. defined in linker script */
+  16 0008 00000000 	.word	_edata
+  17              	/* start address for the .bss section. defined in linker script */
+  18 000c 00000000 	.word	_sbss
+  19              	/* end address for the .bss section. defined in linker script */
+  20 0010 00000000 	.word	_ebss
+  21              	
+  22              	.equ  BootRAM,        0xF1E0F85F
+  23              	/**
+  24              	 * @brief  This is the code that gets called when the processor first
+  25              	 *          starts execution following a reset event. Only the absolutely
+  26              	 *          necessary set is performed, after which the application
+  27              	 *          supplied main() routine is called.
+  28              	 * @param  None
+  29              	 * @retval : None
+  30              	*/
+  31              	
+  32              	    .section	.text.Reset_Handler
+  33              		.weak	Reset_Handler
+  34              		.type	Reset_Handler, %function
+  35              	Reset_Handler:
+  36              	
+  37              	/* Copy the data segment initializers from flash to SRAM */
+  38 0000 0021     	  movs	r1, #0
+  39 0002 00F004B8 	  b	LoopCopyDataInit
+  40              	
+  41              	CopyDataInit:
+  42 0006 0B4B     		ldr	r3, =_sidata
+  43 0008 5B58     		ldr	r3, [r3, r1]
+  44 000a 4350     		str	r3, [r0, r1]
+  45 000c 0431     		adds	r1, r1, #4
+  46              	
+  47              	LoopCopyDataInit:
+  48 000e 0A48     		ldr	r0, =_sdata
+  49 0010 0A4B     		ldr	r3, =_edata
+  50 0012 4218     		adds	r2, r0, r1
+  51 0014 9A42     		cmp	r2, r3
+  52 0016 FFF4F6AF 		bcc	CopyDataInit
+  53 001a 094A     		ldr	r2, =_sbss
+  54 001c 00F003B8 		b	LoopFillZerobss
+  55              	/* Zero fill the bss segment. */
+  56              	FillZerobss:
+  57 0020 0023     		movs	r3, #0
+ARM GAS  startup.s 			page 2
+
+
+  58 0022 42F8043B 		str	r3, [r2], #4
+  59              	
+  60              	LoopFillZerobss:
+  61 0026 074B     		ldr	r3, = _ebss
+  62 0028 9A42     		cmp	r2, r3
+  63 002a FFF4F9AF 		bcc	FillZerobss
+  64              	
+  65              	/* Call the clock system intitialization function.*/
+  66              	    /*bl  SystemInit*/
+  67              	/* Call static constructors */
+  68              	    /*bl __libc_init_array*/
+  69              	/* Call the application's entry point.*/
+  70              		/*bl	main*/
+  71              	
+  72              	LoopForever:
+  73 002e FFF7FEBF 	    b LoopForever
+  74              	
+  75              	.size	Reset_Handler, .-Reset_Handler
+  76              	
+  77              	/**
+  78              	 * @brief  This is the code that gets called when the processor receives an
+  79              	 *         unexpected interrupt.  This simply enters an infinite loop, preserving
+  80              	 *         the system state for examination by a debugger.
+  81              	 *
+  82              	 * @param  None
+  83              	 * @retval : None
+  84              	*/
+  85 0032 0000     	    .section	.text.Default_Handler,"ax",%progbits
+  86              	Default_Handler:
+  87              	Infinite_Loop:
+  88 0000 FFF7FEBF 		b	Infinite_Loop
+  89              		.size	Default_Handler, .-Default_Handler
+  90              	/******************************************************************************
+  91              	*
+  92              	* The minimal vector table for a Cortex-M4.  Note that the proper constructs
+  93              	* must be placed on this to ensure that it ends up at physical address
+  94              	* 0x0000.0000.
+  95              	*
+  96              	******************************************************************************/
+  97              	 	.section	.isr_vector,"a",%progbits
+  98              		.type	g_pfnVectors, %object
+  99              		.size	g_pfnVectors, .-g_pfnVectors
+ 100              	
+ 101              	
+ 102              	g_pfnVectors:
+ 103 0000 00000000 		.word	_estack
+ 104 0004 00000000 		.word	Reset_Handler
+ 105 0008 00000000 		.word	NMI_Handler
+ 106 000c 00000000 		.word	HardFault_Handler
+ 107 0010 00000000 		.word	MemManage_Handler
+ 108 0014 00000000 		.word	BusFault_Handler
+ 109 0018 00000000 		.word	UsageFault_Handler
+ 110 001c 00000000 		.word	0
+ 111 0020 00000000 		.word	0
+ 112 0024 00000000 		.word	0
+ 113 0028 00000000 		.word	0
+ 114 002c 00000000 		.word	SVC_Handler
+ARM GAS  startup.s 			page 3
+
+
+ 115 0030 00000000 		.word	DebugMon_Handler
+ 116 0034 00000000 		.word	0
+ 117 0038 00000000 		.word	PendSV_Handler
+ 118 003c 00000000 		.word	SysTick_Handler
+ 119              	
+ 120              	
+ 121              	/*******************************************************************************
+ 122              	*
+ 123              	* Provide weak aliases for each Exception handler to the Default_Handler.
+ 124              	* As they are weak aliases, any function with the same name will override
+ 125              	* this definition.
+ 126              	*
+ 127              	*******************************************************************************/
+ 128              	
+ 129              	  .weak	NMI_Handler
+ 130              		.thumb_set NMI_Handler,Default_Handler
+ 131              	
+ 132              	  .weak	HardFault_Handler
+ 133              		.thumb_set HardFault_Handler,Default_Handler
+ 134              	
+ 135              	  .weak	MemManage_Handler
+ 136              		.thumb_set MemManage_Handler,Default_Handler
+ 137              	
+ 138              	  .weak	BusFault_Handler
+ 139              		.thumb_set BusFault_Handler,Default_Handler
+ 140              	
+ 141              		.weak	UsageFault_Handler
+ 142              		.thumb_set UsageFault_Handler,Default_Handler
+ 143              	
+ 144              		.weak	SVC_Handler
+ 145              		.thumb_set SVC_Handler,Default_Handler
+ 146              	
+ 147              		.weak	DebugMon_Handler
+ 148              		.thumb_set DebugMon_Handler,Default_Handler
+ 149              	
+ 150              		.weak	PendSV_Handler
+ 151              		.thumb_set PendSV_Handler,Default_Handler
+ 152              	
+ 153              		.weak	SysTick_Handler
+ 154              		.thumb_set SysTick_Handler,Default_Handler
+ 155              	

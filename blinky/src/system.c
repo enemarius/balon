@@ -5,20 +5,45 @@
  *----------------------------------------------------------------------------*/
 
 #include "system.h"
-#include "stm32f303xc.h"  
+#include <stdint.h>
+#include "stm32f303xc.h"
+ 
 
 /** \brief  Select clock source
 
     Select external crystal as clock source + PLL (HSE oscillator clock).
+    Hardcoded to: 16Mhz quartz - x1 prescaler - PLL - x2 multiplier => 32Mhz
 
-    \param [in]  
+    \param [in]     none 
 
-    \return          
+    \return         none 
 */
-uin32_t SYSTEM_SetClockSource()
+void SYSTEM_SetClockSource()
 {
-
-    return 0;
+    /* enable HSE oscillator */
+    RCC->CR |= RCC_CR_HSEON;
+    /* wait for HSE to be stable */
+    while((RCC->CR & RCC_CR_HSERDY) == 0){};
+    /* disable PLL before reconfiguring */
+    RCC->CR &= ~RCC_CR_PLLON;
+    /* wait for PLL to be stopped */
+    while((RCC->CR & RCC_CR_PLLRDY) != 0){};
+    /* select PLL source */
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLSRC) | RCC_CFGR_PLLSRC_HSE_PREDIV;            /* HSE selected as clock source for PLL */
+    /* reconfigure PLL */
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLXTPRE) | RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV1;   /* clock not divided for PLL entry */
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLMUL) | RCC_CFGR_PLLMUL2;                      /* clock multiplied x2 */
+    /* enable PLL */
+    RCC->CR |= RCC_CR_PLLON;
+    /* wait for PLL to be ready */
+    while((RCC->CR & RCC_CR_PLLRDY) == 0){};
+    /* TODO:configure AHB prescaler */
+    /* TODO:configure APB1 prescaler */
+    /* TODO:configure APB2 prescaler */
+    /* select system clock source */
+    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;   /* select PLL as sytem clock */
+    /* check if PLL is system clock. block if otherwise */
+    while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL){};
 }
 
 /** \brief  System Tick Configuration
@@ -27,6 +52,8 @@ uin32_t SYSTEM_SetClockSource()
     Counter is in free running mode to generate periodic interrupts.
     Clock source = AHB/8 = HSI/8.
     NVIC priority = 0..0x0F, also depending on priority group settings.
+    \example        SysTick_Config(1000000);                Configure SysTick to 1.000.000 tick -> 1S for 8MHz HSI clk
+    \example        SysTick_Config(4000000);                Configure SysTick to 4.000.000 tick -> 1S for 32MHz HSE+PLL(quartz) clk
 
     \param [in]  ticks  Number of ticks between two interrupts (0-0xFFFFFFUL).
 

@@ -1,0 +1,74 @@
+********** TOOLCHAIN ***********
+    
+    http://hertaville.com/2012/05/28/gcc-arm-toolchain-stm32f0discovery/
+    
+    1. Install GCC toolchain:
+        https://launchpad.net/gcc-arm-embedded
+    2. Check GCC toolchain is installed:
+        in CMD: arm-none-eabi-gcc.exe -v
+    3. Install GNU MAKE
+        http://gnuwin32.sourceforge.net/packages/make.htm
+        http://sourceforge.net/projects/gnuwin32/files/make/3.81/make-3.81.exe/download?use_mirror=heanet&download=
+    4. Check MAKE is installed
+        in CMD: make -v
+    5. Install the ST Link Utility
+	6. In CMD, use for ex:
+		$ arm-none-eabi-gcc -nostdlib -o csum.elf -T csum.lds csum.c startup.s
+    
+********** LINKER ***********    
+    
+    http://www.bravegnu.org/gnu-eprog/c-startup.html
+    
+    1.  Pt ce e sectiunea  *(COMMON) ?
+    
+    
+    
+    
+********** ASM ***********
+
+    1. MOV vs LDR
+        
+        “#” for mov, “=” for ldr.
+        MOV can only move an 8-bit value, LDR can move a 32-bit value into a register.
+        E.g.
+        Mov r1,#255 ; ok, 255 is the biggest number you can mov
+        Mov r1,255 ; is wrong , missing #
+        Mov r1,#256 ; is wrong, the number is bigger than 255
+        Mov r1,#0x12340000 ; is wrong, the number is bigger than 255
+
+        Ldr r1,=255; you can do this,
+        Ldr r1,=256; you can do this,
+        Ldr r1,=0x12340000; you can do this,
+        o MOV can run faster than LDR.
+        o LDR can move a data from a memory address to a register, MOV can only
+        i) move data between two registers or ii) save a 8-bit immediate value to a
+        register
+
+        Ldr r0,=value1  ; 1) save the address of the variable value1 in r0
+        Ldr r1,[r0]     ; 2) use r0 as the address (pointer) to get value1 to r1
+
+********** GCC ***********
+	ST project path: 	cd F:\onedrive\arm\st\git\build_test
+	Ex: compile and link: 
+	$ arm-none-eabi-gcc -nostdlib -o link_test.elf -T linker.ld startup.s
+		-T script	Use script as the linker script.
+	
+	dump elf:
+	arm-none-eabi-nm -n link_test.elf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

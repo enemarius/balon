@@ -87,6 +87,7 @@ typedef struct
 
 
 /* Function declarations */
+void SYSTEM_SetClockSource(void);
 uint32_t SysTick_Config(uint32_t ticks);
 void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
 void NVIC_EnableIRQ(IRQn_Type IRQn);
